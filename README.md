@@ -13,7 +13,7 @@ This app allows users to increment or decrement a counter with a clean and intui
 
 | Incrementing                         | Decrementing                         |
 | ------------------------------------ | ------------------------------------ |
-| ![[Pasted image 20240922163141.png]] | ![[Pasted image 20240922163221.png]] |
+| ![screenshots](images/image1)        | ![screenshots](images/image2)        |
 
 ## Tech Stack 🛠
 
