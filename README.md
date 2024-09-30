@@ -29,7 +29,7 @@ This app allows users to increment or decrement a counter with a clean and intui
     
     Copiar código
     
-    `git clone git@github.com:WatsiDev/ShinyEncounter.git`
+    `git clone https://github.com/WatsiDev/ShinyEncounter.git`
     
 2. Open the project in **Android Studio**.
     
