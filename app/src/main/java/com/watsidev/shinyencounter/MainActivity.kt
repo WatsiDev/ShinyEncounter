@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.watsidev.shinyencounter.ui.theme.ShinyEncounterTheme
+import kotlin.math.exp
 
 
 class MainActivity : ComponentActivity() {
@@ -99,8 +100,14 @@ fun ShinyEncounterCounter(modifier: Modifier = Modifier) {
             Icon(Icons.Default.MoreVert, contentDescription = "Chose option", tint = Color.Black)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text(text = "1 avistamiento.") }, onClick = { plus = 1 })
-            DropdownMenuItem(text = { Text(text = "5 avistamientos.") }, onClick = { plus = 5 })
+            DropdownMenuItem(text = { Text(text = "1 avistamiento.") }, onClick = {
+                plus = 1
+                expanded = false
+            })
+            DropdownMenuItem(text = { Text(text = "5 avistamientos.") }, onClick = {
+                plus = 5
+                expanded = false
+            })
         }
     }
     Column(
@@ -158,7 +165,6 @@ fun ShinyEncounterCounter(modifier: Modifier = Modifier) {
         }
     }
 }
-
 
 
 @Preview(
