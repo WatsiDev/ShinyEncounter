@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,11 +28,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -43,8 +39,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.watsidev.shinyencounter.ui.theme.ShinyEncounterTheme
-import kotlin.math.exp
+import com.watsidev.shinyencounter.viewmodel.CounterViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -53,16 +50,28 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ShinyEncounterTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ShinyEncounterCounter(
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                CountApp()
             }
         }
     }
 }
 
+/**
+ * Main app composable
+ */
+@Composable
+fun CountApp() {
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+    ) { innerPadding ->
+        ShinyEncounterCounter(modifier = Modifier.padding(innerPadding))
+    }
+}
+
+/**
+ * Background composable
+ */
 @Composable
 fun Background() {
     Canvas(
@@ -75,40 +84,22 @@ fun Background() {
     }
 }
 
+/**
+ * The main screen of the app.
+ *  @param modifier modifiers to set to this composable
+ */
 @Composable
-fun ShinyEncounterCounter(modifier: Modifier = Modifier) {
-    var count = remember {
-        mutableIntStateOf(0)
-    }
-    var number = remember {
-        mutableStateOf(0)
-    }
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-    var plus by remember {
-        mutableIntStateOf(1)
-    }
+fun ShinyEncounterCounter(
+    modifier: Modifier = Modifier
+) {
     Background()
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = 32.dp)
             .wrapContentSize(Alignment.TopStart)
     ) {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Chose option", tint = Color.Black)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text(text = "1 avistamiento.") }, onClick = {
-                plus = 1
-                expanded = false
-            })
-            DropdownMenuItem(text = { Text(text = "5 avistamientos.") }, onClick = {
-                plus = 5
-                expanded = false
-            })
-        }
+        IconSelect()
     }
     Column(
         modifier = Modifier
@@ -116,53 +107,101 @@ fun ShinyEncounterCounter(modifier: Modifier = Modifier) {
         Arrangement.Center,
         Alignment.CenterHorizontally
     ) {
+        Reset()
+        ContentCounter()
+        Buttons()
+    }
+}
+
+/**
+ * IconSelect composable
+ *
+ * @param viewModel the view model to use
+ */
+@Composable
+fun IconSelect(viewModel: CounterViewModel = viewModel()) {
+    IconButton(onClick = { viewModel.setExpanded(true) }) {
+        Icon(Icons.Default.MoreVert, contentDescription = "Chose option", tint = Color.Black)
+    }
+    DropdownMenu(
+        expanded = viewModel.expanded.collectAsState().value,
+        onDismissRequest = { viewModel.setExpanded(false) }) {
+        DropdownMenuItem(text = { Text(text = "1 avistamiento.") }, onClick = {
+            viewModel.setPlus(1)
+            viewModel.setExpanded(false)
+        })
+        DropdownMenuItem(text = { Text(text = "5 avistamientos.") }, onClick = {
+            viewModel.setPlus(5)
+            viewModel.setExpanded(false)
+        })
+    }
+}
 
 
-        Image(
-            painter = painterResource(R.drawable._29magikarpsprite),
-            contentDescription = "SpritePokemon",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(258.dp)
-        )
-        Text(
-            text = count.intValue.toString(),
-            fontSize = 48.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            Arrangement.Center
+/**
+ * ContentCounter composable
+ *
+ * @param viewModel the view model to use
+ */
+@Composable
+fun ContentCounter(viewModel: CounterViewModel = viewModel()) {
+    val count by viewModel.count.collectAsState()
+    Image(
+        painter = painterResource(R.drawable._29magikarpsprite),
+        contentDescription = "SpritePokemon",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(258.dp)
+    )
+    Text(
+        text = count.toString(),
+        fontSize = 48.sp,
+        color = Color.Black,
+        fontWeight = FontWeight.SemiBold
+    )
+}
+
+/**
+ * Buttons increment and decrement composable
+ *
+ * @param viewModel the view model to use
+ */
+@Composable
+fun Buttons(viewModel: CounterViewModel = viewModel()) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Button(
+            onClick = { viewModel.decrement() },
+            colors = ButtonDefaults.buttonColors(Color(0xFFDE688C))
         ) {
-            Button(onClick = {
-                if (plus != 5) {
-                    if (count.intValue != 0) {
-                        count.value--
-                    }
-                } else if (count.value > 0) {
-                    count.value = count.value - 5
-                } else if (count.value < 0) {
-                    count.value = 0
-                }
-            }, colors = ButtonDefaults.buttonColors(Color(0xFFDE688C))) {
-//                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "menos")
-                Text(text = "➖")
-            }
-            Spacer(modifier = Modifier.padding(32.dp))
-            Button(onClick = {
-                if (plus != 5) {
-                    count.value++
-                } else {
-                    count.value = count.value + 5
-                }
-            }, colors = ButtonDefaults.buttonColors(Color(0xFFDE688C))) {
-//                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Add")
-                Text(text = "➕")
-            }
+            Text(text = "➖")
         }
+        Button(
+            onClick = { viewModel.increment() },
+            colors = ButtonDefaults.buttonColors(Color(0xFFDE688C))
+        ) {
+            Text(text = "➕")
+        }
+    }
+}
+
+
+/**
+ * Reset count composable
+ *
+ * @param viewModel the view model to use
+ */
+@Composable
+fun Reset(viewModel: CounterViewModel = viewModel()) {
+    Button(
+        onClick = { viewModel.reset() },
+        colors = ButtonDefaults.buttonColors(Color(0xFFDE688C))
+    ) {
+        Text(text = "Reset")
     }
 }
 
